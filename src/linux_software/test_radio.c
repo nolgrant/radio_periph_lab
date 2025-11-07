@@ -64,13 +64,13 @@ void print_benchmark(volatile unsigned int *periph_base)
     float time_spent_s = ((float)time_spent_clk * 1/(125e6));
     float throughput_BytesPerSec = ((float)bytes_transferred) / time_spent_s; 
 
-    printf("Start time in clocks = %u\n",start_time);
-    printf("Stop time  in clocks = %u\n",stop_time);
-    printf("Elapsed time in clks = %u\n",time_spent_clk);
-    printf("Elapsed time in s    = %f\n",time_spent_s);
-    printf("Elapsed time in us   = %f\n",time_spent_s*1e6);
-    printf("Bytes transferred    = %u\n",bytes_transferred);
-    // printf("You transferred %f bytes of data in %f seconds\n",bytes_transferred,time_spent_s);
+    // printf("Start time in clocks = %u\n",start_time);
+    // printf("Stop time  in clocks = %u\n",stop_time);
+    // printf("Elapsed time in clks = %u\n",time_spent_clk);
+    // printf("Elapsed time in us   = %f\n",time_spent_s*1e6);
+
+    printf("Bytes transferred = %u\n",bytes_transferred);
+    printf("Elapsed time (us) = %f\n",time_spent_s*1e6);
     printf("Measured Transfer throughput = %f Mbytes/sec\n",throughput_BytesPerSec*(1e-6));
 }
 
