@@ -603,7 +603,7 @@ begin
 	process( S_AXI_ACLK ) is
 	begin
 	  if (rising_edge (S_AXI_ACLK)) then
-	    if ( S_AXI_ARESETN = '0' ) then
+	    if ( dds_resetn = '0' ) then
 	       slv_reg3  <= (others => '0');
 	    else
            slv_reg3 <= std_logic_vector(unsigned(slv_reg3) + 1);

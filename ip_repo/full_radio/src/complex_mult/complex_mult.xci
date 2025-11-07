@@ -5,7 +5,7 @@
     "cell_name": "full_radio_v1_0_S00_AXI_inst/multiplier",
     "component_reference": "xilinx.com:ip:cmpy:6.0",
     "ip_revision": "25",
-    "gen_directory": "../../../../../../../../../../mydata/school/jhu/ee742/lab10/radio_periph_lab/vivado/radio_periph_lab.tmp/full_radio_v1_5_project/full_radio_v1_5_project.gen/sources_1/ip/complex_mult",
+    "gen_directory": "../../../../../../../../../../mydata/school/jhu/ee742/lab10/radio_periph_lab/vivado/radio_periph_lab.tmp/full_radio_v1_6_project/full_radio_v1_6_project.gen/sources_1/ip/complex_mult",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "complex_mult", "resolve_type": "user", "usage": "all" } ],
@@ -85,7 +85,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "25" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../../../../../../../mydata/school/jhu/ee742/lab10/radio_periph_lab/vivado/radio_periph_lab.tmp/full_radio_v1_5_project/full_radio_v1_5_project.gen/sources_1/ip/complex_mult" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../../../../../mydata/school/jhu/ee742/lab10/radio_periph_lab/vivado/radio_periph_lab.tmp/full_radio_v1_6_project/full_radio_v1_6_project.gen/sources_1/ip/complex_mult" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2024.2" } ],
