@@ -118,18 +118,113 @@ architecture arch_imp of full_radio_v1_0_S00_AXI is
 	signal reg_data_out	:std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
 	signal byte_index	: integer;
 	signal aw_en	: std_logic;
+	
+	-- Users to add signals/components here
+	
+	signal dds_resetn : std_logic;
+	
+	-------------- ARCH FROM LAB 8
+	
+    -- Fake ADC DDS Signals 
+--    signal fakeadc_phase_inc   : STD_LOGIC_VECTOR(31 downto 0);
+    signal fakeadc_out_tvalid  : STD_LOGIC;
+    signal phase_reset         : STD_LOGIC;
+    signal phase_reset_n       : STD_LOGIC;    
+    signal fakeadc_out_data16  : STD_LOGIC_VECTOR(15 downto 0);
+    signal fakeadc_out_data32  : STD_LOGIC_VECTOR(31 downto 0);
 
-COMPONENT dds_compiler_0
-  PORT (
-    aclk : IN STD_LOGIC;
-    aresetn : IN STD_LOGIC;
-    s_axis_phase_tvalid : IN STD_LOGIC;
-    s_axis_phase_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-    m_axis_data_tvalid : OUT STD_LOGIC;
-    m_axis_data_tdata : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
-  );
+    -- Mixer DDS Signals
+    signal mixer_phase_inc     : STD_LOGIC_VECTOR(31 downto 0);
+    signal mixer_out_valid     : STD_LOGIC;
+    signal mixer_out_data32    : STD_LOGIC_VECTOR(31 downto 0);
+
+    -- Complex Multiply
+    signal mult_out_valid      : STD_LOGIC;
+    signal mult_out_data80     : STD_LOGIC_VECTOR(79 downto 0);
+    signal mult_out_data33_i   : STD_LOGIC_VECTOR(32 downto 0);
+    signal mult_out_data33_q   : STD_LOGIC_VECTOR(32 downto 0);
+    signal mult_out_data16_i   : STD_LOGIC_VECTOR(15 downto 0);
+    signal mult_out_data16_q   : STD_LOGIC_VECTOR(15 downto 0);
+    signal mult_out_data32     : STD_LOGIC_VECTOR(31 downto 0);
+
+    -- FIR Filter Signals
+    signal f1_tvalid_i         : STD_LOGIC;
+    signal f1_tvalid_q         : STD_LOGIC;
+    signal f1_data24_i         : STD_LOGIC_VECTOR(23 downto 0);
+    signal f1_data24_q         : STD_LOGIC_VECTOR(23 downto 0);
+    signal f1_data16_i         : STD_LOGIC_VECTOR(15 downto 0);
+    signal f1_data16_q         : STD_LOGIC_VECTOR(15 downto 0);
+    signal f2_tvalid_i         : STD_LOGIC;
+    signal f2_tvalid_q         : STD_LOGIC;
+    signal f2_data24_i         : STD_LOGIC_VECTOR(23 downto 0);
+    signal f2_data24_q         : STD_LOGIC_VECTOR(23 downto 0);
+    signal f2_data16_i         : STD_LOGIC_VECTOR(15 downto 0);
+    signal f2_data16_q         : STD_LOGIC_VECTOR(15 downto 0);
+
+    -- Output to CODEC
+    signal data_out_32     : STD_LOGIC_VECTOR(31 downto 0);
+	
+    -- DDS IP - Fake ADC
+    COMPONENT fakeadc_dds
+    PORT (
+        aclk : IN STD_LOGIC;
+        aresetn : IN STD_LOGIC;
+        s_axis_phase_tvalid : IN STD_LOGIC;
+        s_axis_phase_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        m_axis_data_tvalid : OUT STD_LOGIC;
+        m_axis_data_tdata : OUT STD_LOGIC_VECTOR(15 DOWNTO 0) 
+    );
+    end component fakeadc_dds;
+    
+    -- DDS IP - Complex Mixer
+    COMPONENT complex_mixer
+      PORT (
+        aclk : IN STD_LOGIC;
+        s_axis_phase_tvalid : IN STD_LOGIC;
+        s_axis_phase_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        m_axis_data_tvalid : OUT STD_LOGIC;
+        m_axis_data_tdata : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) 
+      );
     END COMPONENT;
 
+    -- FIR Filter 1
+    COMPONENT fir1_new
+      PORT (
+        aclk : IN STD_LOGIC;
+        s_axis_data_tvalid : IN STD_LOGIC;
+        s_axis_data_tready : OUT STD_LOGIC;
+        s_axis_data_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+        m_axis_data_tvalid : OUT STD_LOGIC;
+        m_axis_data_tdata : OUT STD_LOGIC_VECTOR(23 DOWNTO 0) 
+      );
+    END COMPONENT;
+    
+    -- FIR Filter 2
+    COMPONENT fir2_new
+      PORT (
+        aclk : IN STD_LOGIC;
+        s_axis_data_tvalid : IN STD_LOGIC;
+        s_axis_data_tready : OUT STD_LOGIC;
+        s_axis_data_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+        m_axis_data_tvalid : OUT STD_LOGIC;
+        m_axis_data_tdata : OUT STD_LOGIC_VECTOR(23 DOWNTO 0) 
+      );
+    END COMPONENT;
+ 
+    -- Complex Multiplier
+    COMPONENT complex_mult
+      PORT (
+        aclk : IN STD_LOGIC;
+        s_axis_a_tvalid : IN STD_LOGIC;
+        s_axis_a_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axis_b_tvalid : IN STD_LOGIC;
+        s_axis_b_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        m_axis_dout_tvalid : OUT STD_LOGIC;
+        m_axis_dout_tdata : OUT STD_LOGIC_VECTOR(79 DOWNTO 0) 
+      );
+    END COMPONENT;
+    -- Users signals/components end
+    
 begin
 	-- I/O Connections assignments
 
@@ -229,7 +324,7 @@ begin
 	      slv_reg0 <= (others => '0');
 	      slv_reg1 <= (others => '0');
 	      slv_reg2 <= (others => '0');
-	      slv_reg3 <= (others => '0');
+--	      slv_reg3 <= (others => '0');
 	    else
 	      loc_addr := axi_awaddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
 	      if (slv_reg_wren = '1') then
@@ -259,18 +354,18 @@ begin
 	              end if;
 	            end loop;
 	          when b"11" =>
-	            for byte_index in 0 to (C_S_AXI_DATA_WIDTH/8-1) loop
-	              if ( S_AXI_WSTRB(byte_index) = '1' ) then
-	                -- Respective byte enables are asserted as per write strobes                   
-	                -- slave registor 3
-	                slv_reg3(byte_index*8+7 downto byte_index*8) <= S_AXI_WDATA(byte_index*8+7 downto byte_index*8);
-	              end if;
-	            end loop;
+--	            for byte_index in 0 to (C_S_AXI_DATA_WIDTH/8-1) loop
+--	              if ( S_AXI_WSTRB(byte_index) = '1' ) then
+--	                -- Respective byte enables are asserted as per write strobes                   
+--	                -- slave registor 3
+--	                slv_reg3(byte_index*8+7 downto byte_index*8) <= S_AXI_WDATA(byte_index*8+7 downto byte_index*8);
+--	              end if;
+--	            end loop;
 	          when others =>
 	            slv_reg0 <= slv_reg0;
 	            slv_reg1 <= slv_reg1;
 	            slv_reg2 <= slv_reg2;
-	            slv_reg3 <= slv_reg3;
+--	            slv_reg3 <= slv_reg3;
 	        end case;
 	      end if;
 	    end if;
@@ -367,7 +462,7 @@ begin
 	      when b"00" =>
 	        reg_data_out <= slv_reg0;
 	      when b"01" =>
-	        reg_data_out <= x"DEADBEEF";
+	        reg_data_out <= slv_reg1;
 	      when b"10" =>
 	        reg_data_out <= slv_reg2;
 	      when b"11" =>
@@ -398,16 +493,123 @@ begin
 
 	-- Add user logic here
 
-your_instance_name : dds_compiler_0
-  PORT MAP (
-    aclk => s_axi_aclk,
-    aresetn => '1',
-    s_axis_phase_tvalid => '1',
-    s_axis_phase_tdata => slv_reg0,
-    m_axis_data_tvalid => m_axis_tvalid,
-    m_axis_data_tdata => m_axis_tdata
-  );
+    -- Reg 0: Drive the Phase Increment for Fake ADC DDS 
+    -- Reg 1: Drive the Phase Increment for Mixer DDS
 
+    ------------- START LAB 8 ------------- 
+    
+    -- Fake ADC DDS instantiation - phase inc driven by processor 
+    dds : fakeadc_dds
+    PORT MAP (
+        aclk => s_axi_aclk,
+        aresetn => dds_resetn,
+        s_axis_phase_tvalid => '1',
+        s_axis_phase_tdata => slv_reg0,
+        m_axis_data_tvalid => fakeadc_out_tvalid,
+        m_axis_data_tdata => fakeadc_out_data16
+    );
+    fakeadc_out_data32 <= ("0000000000000000" & fakeadc_out_data16);
+      
+    -- Mixer DDS instantiation - phase inc driven by processor 
+    mixer : complex_mixer
+    PORT MAP (
+        aclk => s_axi_aclk,
+        s_axis_phase_tvalid => '1',
+        s_axis_phase_tdata => slv_reg1,
+        m_axis_data_tvalid => mixer_out_valid,
+        m_axis_data_tdata => mixer_out_data32
+      );
+      
+    -- Complex Multiplier
+    multiplier : complex_mult
+      PORT MAP (
+        aclk => s_axi_aclk,
+        s_axis_a_tvalid => fakeadc_out_tvalid,
+        s_axis_a_tdata => fakeadc_out_data32,
+        s_axis_b_tvalid => mixer_out_valid,
+        s_axis_b_tdata => mixer_out_data32,
+        m_axis_dout_tvalid => mult_out_valid,
+        m_axis_dout_tdata => mult_out_data80
+      );
+      mult_out_data33_i <= mult_out_data80(32 downto 0);
+      mult_out_data33_q <= mult_out_data80(72 downto 40);
+
+      mult_out_data16_i <= mult_out_data33_i(29 downto 14); --std_logic_vector(shift_left(signed(mult_out_data33_i(23 downto 8)), 3));
+      mult_out_data16_q <= mult_out_data33_q(29 downto 14); --std_logic_vector(shift_left(signed(mult_out_data33_q(23 downto 8)), 3));
+
+      mult_out_data32 <= mult_out_data16_i & mult_out_data16_q;
+      
+    -- Filter 1 I/Q
+    filter1_i : fir1_new
+    PORT MAP (
+        aclk => s_axi_aclk,
+        s_axis_data_tvalid => mult_out_valid,
+        s_axis_data_tready => open,
+        s_axis_data_tdata => mult_out_data16_i,
+        m_axis_data_tvalid => f1_tvalid_i,
+        m_axis_data_tdata => f1_data24_i
+    );
+    filter1_q : fir1_new
+    PORT MAP (
+        aclk => s_axi_aclk,
+        s_axis_data_tvalid => mult_out_valid,
+        s_axis_data_tready => open,
+        s_axis_data_tdata => mult_out_data16_q,
+        m_axis_data_tvalid => f1_tvalid_q,
+        m_axis_data_tdata => f1_data24_q
+    );
+        
+    -- Extract top 16 bits. Need to shift left by one to account for 17 bits of output 
+    f1_data16_i <= std_logic_vector(shift_left(signed(f1_data24_i(23 downto 8)), 1));
+    f1_data16_q <= std_logic_vector(shift_left(signed(f1_data24_q(23 downto 8)), 1));
+    
+    -- Filter 2 I/Q
+    filter2_i : fir2_new
+    PORT MAP (
+        aclk => s_axi_aclk,
+        s_axis_data_tvalid => f1_tvalid_i,
+        s_axis_data_tready => open,
+        s_axis_data_tdata => f1_data16_i,
+        m_axis_data_tvalid => f2_tvalid_i,
+        m_axis_data_tdata => f2_data24_i
+    );
+    filter2_q : fir2_new
+    PORT MAP (
+        aclk => s_axi_aclk,
+        s_axis_data_tvalid => f1_tvalid_q,
+        s_axis_data_tready => open,
+        s_axis_data_tdata => f1_data16_q,
+        m_axis_data_tvalid => f2_tvalid_q,
+        m_axis_data_tdata => f2_data24_q
+    );
+    
+    -- Extract top 16 bits. Need to shift left by one to account for 17 bit wide output
+    f2_data16_i <= std_logic_vector(shift_left(signed(f2_data24_i(23 downto 8)), 1));
+    f2_data16_q <= std_logic_vector(shift_left(signed(f2_data24_q(23 downto 8)), 1));
+       
+    -- Always Choose Filtered Data
+    data_out_32 <= (f2_data16_i & f2_data16_q);
+
+    ------------- END LAB 8 -------------
+
+    -- AXI Stream Master for Low Level DAC 
+    m_axis_tdata <= data_out_32;
+    m_axis_tvalid <= '1';
+
+    -- Reg 2: Reset for DDS
+    dds_resetn <= not slv_reg2(0); -- Reg = 1 --> Reset --> Resetn = 0
+
+    -- Reg 3: Clock Counter
+	process( S_AXI_ACLK ) is
+	begin
+	  if (rising_edge (S_AXI_ACLK)) then
+	    if ( S_AXI_ARESETN = '0' ) then
+	       slv_reg3  <= (others => '0');
+	    else
+           slv_reg3 <= std_logic_vector(unsigned(slv_reg3) + 1);
+	    end if;
+	  end if;
+	end process;
 
 	-- User logic ends
 

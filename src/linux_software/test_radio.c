@@ -54,26 +54,33 @@ void print_benchmark(volatile unsigned int *periph_base)
     // to get an idea of how fast you can generally read from an axi-lite slave device
     unsigned int start_time;
     unsigned int stop_time;
+    unsigned int nread = 114688;
     start_time = *(periph_base+RADIO_TUNER_TIMER_REG_OFFSET);
-    for (int i=0;i<2048;i++)
+    for (int i=0;i<nread;i++)
         stop_time = *(periph_base+RADIO_TUNER_TIMER_REG_OFFSET);
-    printf("Elapsed time in clocks = %u\n",stop_time-start_time);
-    float throughput=0; 
-    // please insert your code here for calculate the actual throughput in Mbytes/second
-    // how much data was transferred? How long did it take?
-    unsigned int bytes_transferred = 0; // change obviously
-    float time_spent = 1; // change obviously
-    printf("You transferred %f bytes of data in %f seconds\n",bytes_transferred,time_spent);
-    printf("Measured Transfer throughput = %f Mbytes/sec\n",throughput);
+
+    unsigned int bytes_transferred = nread*4; // 32 bits per word = 4 bytes
+    unsigned int time_spent_clk = stop_time-start_time;
+    float time_spent_s = ((float)time_spent_clk * 1/(125e6));
+    float throughput_BytesPerSec = ((float)bytes_transferred) / time_spent_s; 
+
+    printf("Start time in clocks = %u\n",start_time);
+    printf("Stop time  in clocks = %u\n",stop_time);
+    printf("Elapsed time in clks = %u\n",time_spent_clk);
+    printf("Elapsed time in s    = %f\n",time_spent_s);
+    printf("Elapsed time in us   = %f\n",time_spent_s*1e6);
+    printf("Bytes transferred    = %u\n",bytes_transferred);
+    // printf("You transferred %f bytes of data in %f seconds\n",bytes_transferred,time_spent_s);
+    printf("Measured Transfer throughput = %f Mbytes/sec\n",throughput_BytesPerSec*(1e-6));
 }
 
 int main()
 {
 
-// first, get a pointer to the peripheral base address using /dev/mem and the function mmap
+    // first, get a pointer to the peripheral base address using /dev/mem and the function mmap
     volatile unsigned int *my_periph = get_a_pointer(RADIO_PERIPH_ADDRESS);	
 
-    printf("\r\n\r\n\r\nLab 6 YOURNAME - Custom Peripheral Demonstration\n\r");
+    printf("\r\n\r\n\r\nLab 10 Nolan Andreassen - Custom Peripheral Demonstration\n\r");
     *(my_periph+RADIO_TUNER_CONTROL_REG_OFFSET) = 0; // make sure radio isn't in reset
     printf("Tuning Radio to 30MHz\n\r");
     radioTuner_tuneRadio(my_periph,30e6);
