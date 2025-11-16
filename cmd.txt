@@ -1,0 +1,44 @@
+========LOGIN========
+10.0.0.232
+user: student
+pass: student
+
+========PROGRAM========
+fpgautil -b design_1_wrapper.bit.bin 
+
+========READ========
+devmem 0x43c00000 w 
+
+========WRITE========
+devmem 0x43c00000 w 1000
+
+======== SD Card =======
+/run/media/mmcblk0p1/config_codec.sh
+
+======== Compile C code ==========
+gcc test_radio.c -o test_radio
+
+
+======== Lab 10 ======== 
+fpgautil -b design_1_wrapper.bit.bin 
+/run/media/mmcblk0p1/config_codec.sh
+gcc test_radio.c -o test_radio
+./test_radio
+
+======== Lab 11 Milestone ======== 
+gcc milestone2.c -o milestone2
+./milestone2
+
+======== reset ======== 
+devmem 0x43c0000c w
+devmem 0x43c0000c w
+devmem 0x43c00008 w 1
+devmem 0x43c0000c w
+devmem 0x43c0000c w
+devmem 0x43c00008 w 0
+devmem 0x43c0000c w
+devmem 0x43c0000c w
+
+======== video demo ======== 
+sleep 10 && ./test_radio
+
