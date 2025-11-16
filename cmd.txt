@@ -18,14 +18,15 @@ devmem 0x43c00000 w 1000
 ======== Compile C code ==========
 gcc test_radio.c -o test_radio
 
-
 ======== Lab 10 ======== 
 fpgautil -b design_1_wrapper.bit.bin 
 /run/media/mmcblk0p1/config_codec.sh
 gcc test_radio.c -o test_radio
 ./test_radio
 
-======== Lab 11 Milestone ======== 
+======== Lab 11 Milestone 2 ======== 
+fpgautil -b design_1_wrapper.bit.bin 
+/run/media/mmcblk0p1/config_codec.sh
 gcc milestone2.c -o milestone2
 ./milestone2
 
