@@ -12,7 +12,10 @@ devmem 0x43c00000 w
 ========WRITE========
 devmem 0x43c00000 w 1000
 
-======== SD Card =======
+======== SD Card Path =======
+/run/media/mmcblk0p1/
+
+======== Configure CODEC =======
 /run/media/mmcblk0p1/config_codec.sh
 
 ======== Compile C code ==========
@@ -24,13 +27,7 @@ fpgautil -b design_1_wrapper.bit.bin
 gcc test_radio.c -o test_radio
 ./test_radio
 
-======== Lab 11 Milestone 2 ======== 
-fpgautil -b design_1_wrapper.bit.bin 
-/run/media/mmcblk0p1/config_codec.sh
-gcc milestone2.c -o milestone2
-./milestone2
-
-======== reset ======== 
+======== Verify RTC reset ======== 
 devmem 0x43c0000c w
 devmem 0x43c0000c w
 devmem 0x43c00008 w 1
@@ -43,3 +40,18 @@ devmem 0x43c0000c w
 ======== video demo ======== 
 sleep 10 && ./test_radio
 
+======== Lab 11 Milestone 2 ======== 
+fpgautil -b design_1_wrapper.bit.bin 
+/run/media/mmcblk0p1/config_codec.sh
+gcc milestone2.c -o milestone2
+./milestone2
+
+======== Lab 11 Milestone 1 ======== 
+gcc sendupdpackets.c -o  sendupdpackets
+./sendupdpackets 10.0.0.66 8088 100
+
+
+======= Launch web page =========
+tar -xzf web.tgz
+cd web\
+sudo httpd -p 8080
