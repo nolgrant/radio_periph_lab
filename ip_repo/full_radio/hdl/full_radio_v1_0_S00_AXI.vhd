@@ -594,10 +594,12 @@ begin
 
     -- AXI Stream Master for Low Level DAC 
     m_axis_tdata <= data_out_32;
-    m_axis_tvalid <= '1';
 
-    -- Reg 2: Reset for DDS
-    dds_resetn <= not slv_reg2(0); -- Reg = 1 --> Reset --> Resetn = 0
+    -- Reg 2: Bit 0  = Reset for DDS
+    dds_resetn <= not slv_reg2(0); -- Bit = 1 --> Reset --> Resetn = 0
+
+    -- Reg 2: Bit 1  = Disable Output
+    m_axis_tvalid <= f2_tvalid_i when slv_reg2(1) = '1' else '0';
 
     -- Reg 3: Clock Counter
 	process( S_AXI_ACLK ) is

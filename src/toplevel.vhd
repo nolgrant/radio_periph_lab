@@ -1,8 +1,9 @@
---Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+--Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+--Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
---Tool Version: Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
---Date        : Tue Feb 22 17:42:59 2022
---Host        : WENSTDS1-WL3 running 64-bit major release  (build 9200)
+--Tool Version: Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+--Date        : Sun Nov 16 09:36:23 2025
+--Host        : Nolan-Laptop running 64-bit major release  (build 9200)
 --Command     : generate_target design_1_wrapper.bd
 --Design      : design_1_wrapper
 --Purpose     : IP block netlist
@@ -13,7 +14,6 @@ library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
 entity design_1_wrapper is
   port (
-    clk125 : in STD_LOGIC;
     DDR_addr : inout STD_LOGIC_VECTOR ( 14 downto 0 );
     DDR_ba : inout STD_LOGIC_VECTOR ( 2 downto 0 );
     DDR_cas_n : inout STD_LOGIC;
@@ -39,6 +39,7 @@ entity design_1_wrapper is
     IIC_0_sda_io : inout STD_LOGIC;
     ac_muten : out STD_LOGIC ;
     bclk : out STD_LOGIC;
+    clk125 : in STD_LOGIC;
     lrck : out STD_LOGIC;
     mclk : out STD_LOGIC;
     sdata : out STD_LOGIC
@@ -48,17 +49,6 @@ end design_1_wrapper;
 architecture STRUCTURE of design_1_wrapper is
   component design_1 is
   port (
-    bclk : out STD_LOGIC;
-    lrck : out STD_LOGIC;
-    mclk : out STD_LOGIC;
-    sdata : out STD_LOGIC;
-    clk125 : in STD_LOGIC;
-    IIC_0_scl_i : in STD_LOGIC;
-    IIC_0_scl_o : out STD_LOGIC;
-    IIC_0_scl_t : out STD_LOGIC;
-    IIC_0_sda_i : in STD_LOGIC;
-    IIC_0_sda_o : out STD_LOGIC;
-    IIC_0_sda_t : out STD_LOGIC;
     DDR_cas_n : inout STD_LOGIC;
     DDR_cke : inout STD_LOGIC;
     DDR_ck_n : inout STD_LOGIC;
@@ -79,7 +69,18 @@ architecture STRUCTURE of design_1_wrapper is
     FIXED_IO_ddr_vrp : inout STD_LOGIC;
     FIXED_IO_ps_srstb : inout STD_LOGIC;
     FIXED_IO_ps_clk : inout STD_LOGIC;
-    FIXED_IO_ps_porb : inout STD_LOGIC
+    FIXED_IO_ps_porb : inout STD_LOGIC;
+    IIC_0_sda_i : in STD_LOGIC;
+    IIC_0_sda_o : out STD_LOGIC;
+    IIC_0_sda_t : out STD_LOGIC;
+    IIC_0_scl_i : in STD_LOGIC;
+    IIC_0_scl_o : out STD_LOGIC;
+    IIC_0_scl_t : out STD_LOGIC;
+    bclk : out STD_LOGIC;
+    clk125 : in STD_LOGIC;
+    lrck : out STD_LOGIC;
+    mclk : out STD_LOGIC;
+    sdata : out STD_LOGIC
   );
   end component design_1;
   component IOBUF is
@@ -141,11 +142,10 @@ design_1_i: component design_1
       IIC_0_sda_o => IIC_0_sda_o,
       IIC_0_sda_t => IIC_0_sda_t,
       bclk => bclk,
+      clk125 => clk125,
       lrck => lrck,
       mclk => mclk,
-      sdata => sdata,
-      clk125=>clk125
+      sdata => sdata
     );
-    
-ac_muten <= '1';    
+ac_muten <= '1';
 end STRUCTURE;
